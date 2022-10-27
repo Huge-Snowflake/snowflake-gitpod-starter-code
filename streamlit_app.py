@@ -1,5 +1,6 @@
 import os
 import streamlit as st
+import numpy as np
 import snowflake.connector  #upm package(snowflake-connector-python==2.7.0)
  
  
@@ -7,11 +8,11 @@ import snowflake.connector  #upm package(snowflake-connector-python==2.7.0)
 @st.experimental_singleton
 def init_connection():
     con = snowflake.connector.connect(
-        user=os.getenv("SFUSER"),
-        password=os.getenv("PASSWORD"),
-        account=os.getenv("ACCOUNT"),
-        role=os.getenv("ROLE"),
-        warehouse=os.getenv("WAREHOUSE"),
+        user=os.getenv("SF_USER"),
+        password=os.getenv("SF_PASSWORD"),
+        account=os.getenv("SF_ACCOUNT"),
+        role=os.getenv("SF_ROLE"),
+        warehouse=os.getenv("SF_WAREHOUSE"),
     )
     return con
  
@@ -21,15 +22,15 @@ def init_connection():
 def run_query(query):
     with conn.cursor() as cur:
         cur.execute(query)
-        return cur.fetchall()
+        return cur.fetch_pandas_all()
  
  
 # rows = run_query("SHOW TABLES;")
 conn = init_connection()
  
-query = "CREATE OR REPLACE DATABASE EMPLOYEES;"
+query = "select city, state_id, ranking, lat, lng from citibike.geodemo.SIMPLEMAP_US_CITIES where rnaking = 1;"
 rows = run_query(query)
  
-# Print results.
-for row in rows:
-    st.write(row)
+
+st.subheader('Cities By Ranking')
+st.map(rows)
